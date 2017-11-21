@@ -15,8 +15,7 @@ __author__ = 'JHao'
 import sys
 from multiprocessing import Process
 
-
-sys.path.append('../')
+sys.path.append(sys.path[0] + '/../')
 
 from Api.ProxyApi import run as ProxyApiRun
 from Schedule.ProxyValidSchedule import run as ValidRun
@@ -38,5 +37,6 @@ def run():
     for p in p_list:
         p.join()
 
+
 if __name__ == '__main__':
-   run()
+    run()
