@@ -12,6 +12,8 @@
 -------------------------------------------------
 """
 import re
+import time
+
 import requests
 
 try:
@@ -22,7 +24,7 @@ except:
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
-from Util.utilFunction import robustCrawl, getHtmlTree
+from Util.utilFunction import getHtmlTree
 from Util.WebRequest import WebRequest
 
 # for debug to disable insecureWarning
@@ -47,7 +49,9 @@ class GetFreeProxy(object):
         url_list = ['http://www.data5u.com/',
                     'http://www.data5u.com/free/',
                     'http://www.data5u.com/free/gngn/index.shtml',
-                    'http://www.data5u.com/free/gnpt/index.shtml']
+                    'http://www.data5u.com/free/gnpt/index.shtml',
+                    'http://www.data5u.com/free/gwgn/index.shtml',
+                    'http://www.data5u.com/free/gwpt/index.shtml']
         for url in url_list:
             html_tree = getHtmlTree(url)
             ul_list = html_tree.xpath('//ul[@class="l2"]')
@@ -64,14 +68,21 @@ class GetFreeProxy(object):
         :param proxy_number: 代理数量
         :return:
         """
-        url = "http://www.66ip.cn/mo.php?sxb=&tqsl={}&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea=".format(
-                proxy_number)
-        request = WebRequest()
-        # html = request.get(url).content
-        # content为未解码，text为解码后的字符串
-        html = request.get(url).text
-        for proxy in re.findall(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}', html):
-            yield proxy
+        url_list = [
+            "http://www.66ip.cn/mo.php?sxb=%CF%E3%B8%DB&tqsl={}&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea=".format(
+                proxy_number),
+            "http://www.66ip.cn/nmtq.php?getnum={}&isp=0&anonymoustype=0&start=&ports=&export=&ipaddress=%CF%E3%B8%DB&area=0&proxytype=2&api=66ip".format(
+                proxy_number),
+        ]
+
+        for url in url_list:
+            request = WebRequest()
+            # html = request.get(url).content
+            # content为未解码，text为解码后的字符串
+            html = request.get(url).text
+            for proxy in re.findall(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d{1,5}', html):
+                yield proxy
+            time.sleep(2)
 
     @staticmethod
     def freeProxyThird(days=1):
@@ -149,23 +160,35 @@ class GetFreeProxy(object):
         except Exception as e:
             pass
 
+    @staticmethod
+    def freeProxyKuaidaili():
+        # 快代理http://www.kuaidaili.com/free/inha/1/
+        url = "http://www.kuaidaili.com/free/inha/{}/"
+        for page in range(1, 10):
+            page_url = url.format(page)
+            tree = getHtmlTree(page_url)
+            ip_list = tree.xpath('//td[@data-title="IP"]/text()')
+            port_list = tree.xpath('//td[@data-title="PORT"]/text()')
+            for index, ip in enumerate(ip_list):
+                yield '{}:{}'.format(ip, port_list[index])
+
+    @staticmethod
+    def freeProxyProxydb():
+        # Proxydb  http://proxydb.net/?protocol=http&protocol=https&country=&offset=0
+        url = "http://proxydb.net/?protocol=http&country=&offset={}"
+        for offset in range(0, 135, 15):
+            page_url = url.format(offset)
+            tree = getHtmlTree(page_url)
+            proxy_list = tree.xpath('//table//script/text()')
+            for item in proxy_list:
+                list = re.split('=|;|\'', "".join(item.split()))
+                ip = list[2][::-1] + list[10]
+                port = eval(list[13])
+                yield '{}:{}'.format(ip, port)
+            time.sleep(2)
+
 
 if __name__ == '__main__':
     gg = GetFreeProxy()
-    # for e in gg.freeProxyFirst():
-    #     print(e)
-    #
-    # for e in gg.freeProxySecond():
-    #     print(e)
-    #
-    # for e in gg.freeProxyThird():
-        # print(e)
-
-    # for e in gg.freeProxyFourth():
-    #     print(e)
-
-    for e in gg.freeProxyFifth():
+    for e in gg.freeProxyProxydb():
         print(e)
-
-    # for e in gg.freeProxySixth():
-    #     print(e)
