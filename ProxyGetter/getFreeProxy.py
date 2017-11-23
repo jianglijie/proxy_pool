@@ -48,8 +48,8 @@ class GetFreeProxy(object):
         """
         url_list = ['http://www.data5u.com/',
                     'http://www.data5u.com/free/',
-                    'http://www.data5u.com/free/gngn/index.shtml',
-                    'http://www.data5u.com/free/gnpt/index.shtml',
+                    # 'http://www.data5u.com/free/gngn/index.shtml',
+                    # 'http://www.data5u.com/free/gnpt/index.shtml',
                     'http://www.data5u.com/free/gwgn/index.shtml',
                     'http://www.data5u.com/free/gwpt/index.shtml']
         for url in url_list:
