@@ -62,7 +62,7 @@ class GetFreeProxy(object):
                     pass
 
     @staticmethod
-    def freeProxySecond(proxy_number=100):
+    def freeProxySecond(proxy_number=200):
         """
         抓取代理66 http://www.66ip.cn/
         :param proxy_number: 代理数量
@@ -71,9 +71,14 @@ class GetFreeProxy(object):
         url_list = [
             "http://www.66ip.cn/mo.php?sxb=%CF%E3%B8%DB&tqsl={}&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea=".format(
                 proxy_number),
-            "http://www.66ip.cn/nmtq.php?getnum={}&isp=0&anonymoustype=0&start=&ports=&export=&ipaddress=%CF%E3%B8%DB&area=0&proxytype=2&api=66ip".format(
+            "http://www.66ip.cn/nmtq.php?getnum={}&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=2&proxytype=0&api=66ip".format(
+                proxy_number),
+            "http://www.66ip.cn/nmtq.php?getnum={}&isp=0&anonymoustype=2&start=&ports=&export=&ipaddress=&area=2&proxytype=0&api=66ip".format(
+                proxy_number),
+            "http://www.66ip.cn/nmtq.php?getnum={}&isp=0&anonymoustype=3&start=&ports=&export=&ipaddress=&area=2&proxytype=0&api=66ip".format(
                 proxy_number),
         ]
+
 
         for url in url_list:
             request = WebRequest()
@@ -124,26 +129,32 @@ class GetFreeProxy(object):
         抓取guobanjia http://www.goubanjia.com/free/gngn/index.shtml
         :return:
         """
-        url = "http://www.goubanjia.com/free/gngn/index{page}.shtml"
-        for page in range(1, 10):
-            page_url = url.format(page=page)
-            tree = getHtmlTree(page_url)
-            proxy_list = tree.xpath('//td[@class="ip"]')
-            # 此网站有隐藏的数字干扰，或抓取到多余的数字或.符号
-            # 需要过滤掉<p style="display:none;">的内容
-            xpath_str = """.//*[not(contains(@style, 'display: none'))
-                                and not(contains(@style, 'display:none'))
-                                and not(contains(@class, 'port'))
-                                ]/text()
-                        """
-            for each_proxy in proxy_list:
-                try:
-                    # :符号裸放在td下，其他放在div span p中，先分割找出ip，再找port
-                    ip_addr = ''.join(each_proxy.xpath(xpath_str))
-                    port = each_proxy.xpath(".//span[contains(@class, 'port')]/text()")[0]
-                    yield '{}:{}'.format(ip_addr, port)
-                except Exception as e:
-                    pass
+        urls = [
+            "http://www.goubanjia.com/free/gwgn/index{page}.shtml",
+            "http://www.goubanjia.com/free/gwpt/index{page}.shtml"
+        ]
+
+        for url in urls:
+            for page in range(1, 7):
+                page_url = url.format(page=page)
+                tree = getHtmlTree(page_url)
+                proxy_list = tree.xpath('//td[@class="ip"]')
+                # 此网站有隐藏的数字干扰，或抓取到多余的数字或.符号
+                # 需要过滤掉<p style="display:none;">的内容
+                xpath_str = """.//*[not(contains(@style, 'display: none'))
+                                    and not(contains(@style, 'display:none'))
+                                    and not(contains(@class, 'port'))
+                                    ]/text()
+                            """
+                for each_proxy in proxy_list:
+                    try:
+                        # :符号裸放在td下，其他放在div span p中，先分割找出ip，再找port
+                        ip_addr = ''.join(each_proxy.xpath(xpath_str))
+                        port = each_proxy.xpath(".//span[contains(@class, 'port')]/text()")[0]
+                        yield '{}:{}'.format(ip_addr, port)
+                    except Exception as e:
+                        pass
+            time.sleep(2)
 
     @staticmethod
     def freeProxySixth():
@@ -176,7 +187,7 @@ class GetFreeProxy(object):
     def freeProxyProxydb():
         # Proxydb  http://proxydb.net/?protocol=http&protocol=https&country=&offset=0
         url = "http://proxydb.net/?protocol=http&country=&offset={}"
-        for offset in range(0, 135, 15):
+        for offset in range(0, 150, 15):
             page_url = url.format(offset)
             tree = getHtmlTree(page_url)
             proxy_list = tree.xpath('//table//script/text()')
@@ -187,8 +198,43 @@ class GetFreeProxy(object):
                 yield '{}:{}'.format(ip, port)
             time.sleep(2)
 
+    @staticmethod
+    def freeProxyMimiIP():
+        # 秘密IP
+        url = "http://www.mimiip.com/hw/{}"
+        for page in range(1, 11):
+            page_url = url.format(page)
+            tree = getHtmlTree(page_url)
+            proxy_list = tree.xpath('//table[@class="list"]//tr')
+            for proxy in proxy_list:
+                try:
+                    content = proxy.xpath('./td/text()')
+                    if content[4] == 'HTTP':
+                        yield ':'.join(content[0:2])
+                except Exception as e:
+                    pass
+            time.sleep(2)
+
+    @staticmethod
+    def freeProxyPingRui():
+        # PingRui
+        url_list = [
+            'http://pingrui.net/wn/',
+            'http://pingrui.net/wt/'
+        ]
+
+        for each_url in url_list:
+            tree = getHtmlTree(each_url)
+            proxy_list = tree.xpath('.//table[@id="ip_list"]//tr')
+            for proxy in proxy_list:
+                try:
+                    yield ':'.join(proxy.xpath('./td/text()')[0:2])
+                except Exception as e:
+                    pass
+            time.sleep(2)
+
 
 if __name__ == '__main__':
     gg = GetFreeProxy()
-    for e in gg.freeProxyProxydb():
+    for e in gg.freeProxyPingRui():
         print(e)

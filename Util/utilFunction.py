@@ -139,8 +139,8 @@ def validUsefulProxy(proxy):
         proxy = proxy.decode('utf8')
     proxies = {"http": "http://{proxy}".format(proxy=proxy)}
     try:
-        # 超过20秒的代理就不要了
-        r = requests.get('http://www.poloniex.com', proxies=proxies, timeout=10, verify=False)
+        # 超过10秒的代理就不要了
+        r = requests.get('https://bittrex.com/', proxies=proxies, timeout=10, verify=False)
         if r.status_code == 200:
             logger.info('%s is ok' % proxy)
             return True
